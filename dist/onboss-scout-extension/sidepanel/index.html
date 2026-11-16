@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThreadScout — Universal Intent Finder</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Onboarding & Compliance Disclaimer Modal -->
+  <div id="disclaimerModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle">
+    <div class="modal-card">
+      <div class="modal-badge">Kepatuhan & Privasi (UU PDP)</div>
+      <h2 id="disclaimerTitle">Selamat Datang di ThreadScout</h2>
+      <p class="modal-subtitle">
+        Alat bantu penemu sinyal minat beli (intent) untuk produk atau jasa apa pun di Threads.
+      </p>
+      <ul class="compliance-list">
+        <li>
+          <strong>Inisiatif Pengguna:</strong> Ekstensi mencari dan memindai postingan berdasarkan prompt yang Anda jalankan.
+        </li>
+        <li>
+          <strong>Tanpa Otomasi Berbahaya:</strong> Tidak ada auto-DM, auto-comment massal, atau crawling latar belakang yang melanggar ToS Threads/Meta.
+        </li>
+        <li>
+          <strong>Privasi & UU PDP:</strong> Semua data disimpan 100% lokal di perangkat Anda (<code>chrome.storage.local</code>).
+        </li>
+      </ul>
+      <label class="checkbox-row">
+        <input type="checkbox" id="acceptDisclaimerCheck" />
+        <span>Saya memahami dan bertanggung jawab mematuhi ToS Threads/Meta serta UU PDP.</span>
+      </label>
+      <button id="acceptDisclaimerBtn" class="btn btn-primary btn-full" disabled>
+        Mulai Gunakan ThreadScout
+      </button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand-row">
+      <img src="../assets/icons/icon48.png" alt="Onboss Logo" class="brand-logo-img" />
+      <div>
+        <h1 class="brand-title">Onboss Scout</h1>
+        <p class="brand-tagline">Universal Intent Finder di Threads</p>
+      </div>
+    </div>
+    <button id="openDisclaimerBtn" class="icon-btn" title="Info Kepatuhan & Privasi" aria-label="Info Kepatuhan & Privasi">
+      🛡️
+    </button>
+  </header>
+
+  <main class="app-main">
+    <!-- Section 1: Konfigurasi Prompt Jualan Universal -->
+    <section class="panel-card" aria-labelledby="contextHeading">
+      <div class="section-header" id="toggleContextHeader">
+        <div>
+          <h2 id="contextHeading" class="section-title">1. Prompt Jualan / Target Lead</h2>
+          <p id="contextSummaryText" class="section-sub">Tulis apa yang kamu jual, kami carikan pembelinya di Threads</p>
+        </div>
+        <button type="button" id="toggleContextBtn" class="btn-text" aria-expanded="true">
+          Sembunyikan
+        </button>
+      </div>
+
+      <form id="contextForm" class="context-form">
+        <div class="form-group">
+          <label for="promptTextarea">
+            Deskripsikan produk/jasa yang kamu tawarkan <span class="req">*</span>
+          </label>
+          <textarea
+            id="promptTextarea"
+            class="prompt-textarea"
+            rows="3"
+            placeholder="Contoh: Saya jual jasa pembuatan website / landing page UMKM, cari orang yang lagi butuh developer atau bikin web toko online."
+            required
+          ></textarea>
+        </div>
+
+        <!-- Preset Prompt Examples -->
+        <div class="preset-chips-wrap">
+          <span class="preset-label">Contoh:</span>
+          <button type="button" class="preset-chip" data-preset="Saya jual jasa pembuatan website, aplikasi, dan landing page UMKM. Cari orang yang lagi butuh developer, bikin web bisnis, atau toko online.">
+            💻 Jasa Web
+          </button>
+          <button type="button" class="preset-chip" data-preset="Saya jual rumah dan tanah kavling di BSD, Serpong, Bintaro SHM bisa KPR. Cari orang yang lagi nyari rumah atau tanah.">
+            🏠 Properti
+          </button>
+          <button type="button" class="preset-chip" data-preset="Saya buka jasa fotografer & videografer wedding, wisuda, dan event. Cari orang yang lagi nyari fotografer atau vendor dokumentasi.">
+            📸 Fotografer
+          </button>
+          <button type="button" class="preset-chip" data-preset="Saya jual MacBook, iPhone, dan laptop second bergaransi siap COD. Cari orang yang lagi nyari laptop kerja atau kuliah.">
+            📱 Laptop/Gadget
+          </button>
+        </div>
+
+        <!-- Editable Search Query Preview generated from Prompt -->
+        <div class="query-preview-box">
+          <div class="query-preview-header">
+            <label for="searchQueryInput">Kata Kunci Pencarian Threads Otomatis:</label>
+            <span class="query-hint">Otomatis dari prompt (bisa diedit)</span>
+          </div>
+          <input
+            type="text"
+            id="searchQueryInput"
+            class="query-input"
+            placeholder="Cth: cari website"
+          />
+          <div id="suggestedQueriesWrap" class="suggested-queries"></div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Section 2: Trigger Pencarian Otomatis & Pemindaian -->
+    <section class="panel-card scan-card">
+      <div class="scan-actions-stack">
+        <button id="autoSearchScanBtn" class="btn btn-primary btn-scan">
+          <span class="btn-icon">🚀</span>
+          <span>Cari di Threads Sesuai Prompt &amp; Analisis</span>
+        </button>
+        <div class="secondary-scan-row">
+          <button id="scanPageBtn" class="btn btn-outline btn-sm" title="Pindai halaman Threads yang sedang terbuka sekarang tanpa berpindah halaman">
+            🔍 Pindai Halaman Aktif Saja
+          </button>
+          <button id="demoScanBtn" class="btn btn-outline btn-sm" title="Uji coba dengan sampel post sesuai prompt kamu">
+            ⚡ Simulasi Demo
+          </button>
+        </div>
+      </div>
+
+      <div id="cooldownBanner" class="notice-banner hidden" role="status"></div>
+      <div id="errorBanner" class="error-banner hidden" role="alert"></div>
+
+      <!-- Stepped Progress Animation -->
+      <div id="scanProgressBox" class="progress-box hidden" aria-live="polite">
+        <div class="progress-header">
+          <span class="pulse-dot"></span>
+          <span id="progressStageText" class="progress-stage">Mencari di Threads…</span>
+          <span id="progressPercentText" class="progress-percent">0%</span>
+        </div>
+        <div class="progress-bar-track">
+          <div id="progressBarFill" class="progress-bar-fill"></div>
+        </div>
+        <div class="progress-steps">
+          <span id="stepScan" class="step-pill active">1. Cari &amp; Pindai</span>
+          <span id="stepIntent" class="step-pill">2. Filter Topik Prompt</span>
+          <span id="stepScore" class="step-pill">3. Hitung Skor</span>
+        </div>
+      </div>
+
+      <!-- Summary Counters -->
+      <div id="statsBar" class="stats-bar">
+        <div class="stat-chip stat-hot" data-filter="Hot" title="Skor 80–100">
+          <span class="stat-label">🔥 Hot</span>
+          <strong id="countHot">0</strong>
+        </div>
+        <div class="stat-chip stat-warm" data-filter="Warm" title="Skor 60–79">
+          <span class="stat-label">☀️ Warm</span>
+          <strong id="countWarm">0</strong>
+        </div>
+        <div class="stat-chip stat-watch" data-filter="Watch" title="Skor 40–59">
+          <span class="stat-label">👀 Watch</span>
+          <strong id="countWatch">0</strong>
+        </div>
+        <div class="stat-chip stat-all" data-filter="ALL" title="Semua Lead Relevan (≥40)">
+          <span class="stat-label">Relevan</span>
+          <strong id="countTotal">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Filter & Daftar Lead -->
+    <section class="leads-section" aria-label="Daftar Lead">
+      <div class="filter-bar">
+        <div class="filter-tabs" role="tablist">
+          <button class="filter-tab active" data-category="ALL_QUALIFIED" role="tab">Cocok Prompt (≥40)</button>
+          <button class="filter-tab" data-category="Hot" role="tab">Hot</button>
+          <button class="filter-tab" data-category="Warm" role="tab">Warm</button>
+          <button class="filter-tab" data-category="Watch" role="tab">Watch</button>
+          <button class="filter-tab" data-category="Skip" role="tab">Tidak Cocok / Skip</button>
+        </div>
+
+        <div class="filter-controls">
+          <input
+            type="search"
+            id="searchLeadInput"
+            class="filter-input"
+            placeholder="Filter hasil / @author…"
+          />
+          <select id="statusFilterSelect" class="filter-select" aria-label="Filter Status Follow-up">
+            <option value="ALL">Semua Status</option>
+            <option value="new">Baru</option>
+            <option value="contacted">Dihubungi</option>
+            <option value="negotiation">Negosiasi</option>
+            <option value="closed">Closing</option>
+          </select>
+        </div>
+
+        <div class="toolbar-row">
+          <span id="showingCountText" class="showing-text">Menampilkan 0 lead relevan</span>
+          <div class="toolbar-btns">
+            <button id="exportCsvBtn" class="btn-link" title="Ekspor daftar lead ke CSV">
+              ⬇ Ekspor CSV
+            </button>
+            <button id="clearHistoryBtn" class="btn-link danger-link" title="Bersihkan daftar hasil">
+              Bersihkan
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skeleton Loading -->
+      <div id="skeletonList" class="skeleton-list hidden" aria-hidden="true">
+        <div class="skeleton-card">
+          <div class="sk-row"><div class="sk-badge"></div><div class="sk-line short"></div></div>
+          <div class="sk-line long"></div>
+          <div class="sk-line medium"></div>
+        </div>
+        <div class="skeleton-card">
+          <div class="sk-row"><div class="sk-badge"></div><div class="sk-line short"></div></div>
+          <div class="sk-line long"></div>
+          <div class="sk-line medium"></div>
+        </div>
+      </div>
+
+      <!-- Lead Cards Container -->
+      <div id="leadsContainer" class="leads-container"></div>
+    </section>
+  </main>
+
+  <div id="toastNotification" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

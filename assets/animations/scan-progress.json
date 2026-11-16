@@ -1,0 +1,14 @@
+{
+  "name": "threadscout-intent-finder",
+  "version": "1.0.0",
+  "description": "Animasi progres pemindaian dan score count-up reveal untuk ThreadScout Chrome Extension",
+  "stages": [
+    { "step": 1, "label": "Memindai post di halaman Threads…", "progress": 30 },
+    { "step": 2, "label": "Menganalisis sinyal intent & kebutuhan…", "progress": 65 },
+    { "step": 3, "label": "Menghitung skor prioritas (0–100)…", "progress": 95 }
+  ],
+  "scoreReveal": {
+    "easing": "cubicOut",
+    "durationMs": 480
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "Onboss Scout Extension — Universal Intent Finder",
+  "version": "1.2.1",
+  "description": "Cari otomatis dan temukan calon pembeli untuk produk atau jasa apa pun di Threads berdasarkan prompt jualan, skor intent transparan, dan draft outreach relevan.",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "activeTab",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.threads.net/*",
+    "https://www.threads.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Buka ThreadScout Side Panel",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "sidepanel/index.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.threads.net/*",
+        "https://www.threads.com/*"
+      ],
+      "js": [
+        "content/selectors.js",
+        "content/extractor.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  }
+}
